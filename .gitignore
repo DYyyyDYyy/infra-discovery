@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.db
+.env
+*.pem
+lab/id_*
+lab/ssh_key*
+# local agent tooling, not part of the project
+.claude/
+інструкція.md
+.coverage
+htmlcov/
