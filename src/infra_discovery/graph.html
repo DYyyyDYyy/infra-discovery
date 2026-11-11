@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>infra-discovery graph</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.30.2/cytoscape.min.js"></script>
+<style>
+  body { margin: 0; font: 14px system-ui, sans-serif; background: #f7f7f8; color: #222; }
+  header { padding: 10px 16px; background: #fff; border-bottom: 1px solid #ddd; display: flex; gap: 16px; align-items: center; }
+  #cy { position: absolute; top: 46px; bottom: 0; left: 0; right: 320px; }
+  aside { position: absolute; top: 46px; bottom: 0; right: 0; width: 320px; overflow: auto; background: #fff;
+          border-left: 1px solid #ddd; padding: 12px; box-sizing: border-box; }
+  pre { white-space: pre-wrap; font-size: 12px; }
+  .lg span { display: inline-block; width: 10px; height: 10px; margin: 0 4px 0 10px; border-radius: 2px; }
+</style>
+</head>
+<body>
+<header><b>infra-discovery</b>
+  <span class="lg"><span style="background:#3b6fd4"></span>host<span style="background:#2e9e5b"></span>software
+  <span style="background:#d08b1e"></span>listener<span style="background:#999"></span>process</span>
+  <span id="stats"></span></header>
+<div id="cy"></div>
+<aside><h3>Details</h3><pre id="info">Click a node.</pre><h3>Last diff</h3><pre id="diff"></pre></aside>
+<script>
+const colors = { host: "#3b6fd4", software: "#2e9e5b", listener: "#d08b1e", process: "#999" };
+Promise.all([fetch("graph").then(r => r.json()), fetch("diff").then(r => r.json())]).then(([g, diff]) => {
+  document.getElementById("stats").textContent = `${g.nodes.length} nodes, ${g.edges.length} edges`;
+  document.getElementById("diff").textContent = diff.length
+    ? diff.map(c => `${c.op} ${c.entity} ${c.key}`).join("\n") : "no changes";
+  const label = n => n.key.split(":")[1] + (n.attrs.version ? " " + n.attrs.version : "")
+    + (n.kind === "host" && n.attrs.os_name ? "\n" + n.attrs.os_name + " " + (n.attrs.os_version || "") : "");
+  const cy = cytoscape({
+    container: document.getElementById("cy"),
+    elements: [
+      ...g.nodes.map(n => ({ data: { id: n.key, label: label(n), kind: n.kind, raw: n } })),
+      ...g.edges.map(e => ({ data: { id: `${e.src}|${e.kind}|${e.dst}`, source: e.src, target: e.dst, label: e.kind } })),
+    ],
+    style: [
+      { selector: "node", style: { "label": "data(label)", "text-wrap": "wrap", "font-size": 10,
+        "background-color": ele => colors[ele.data("kind")], "text-valign": "bottom", "text-margin-y": 4 } },
+      { selector: "node[kind='host']", style: { "shape": "round-rectangle", "width": 34, "height": 34 } },
+      { selector: "edge", style: { "width": 1.5, "curve-style": "bezier", "target-arrow-shape": "triangle",
+        "line-color": "#bbb", "target-arrow-color": "#bbb", "label": "data(label)", "font-size": 8, "color": "#888" } },
+      { selector: "edge[label='connects_to']", style: { "line-color": "#c0392b", "target-arrow-color": "#c0392b", "width": 3 } },
+    ],
+    layout: { name: "cose", animate: false, nodeRepulsion: 9000, idealEdgeLength: 70 },
+  });
+  cy.on("tap", "node", ev => {
+    document.getElementById("info").textContent = JSON.stringify(ev.target.data("raw"), null, 2);
+  });
+});
+</script>
+</body>
+</html>
