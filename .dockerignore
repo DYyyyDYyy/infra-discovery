@@ -1,0 +1,10 @@
+.venv
+.git
+.claude
+lab
+tests
+*.sqlite
+**/__pycache__
+.*_cache
+.hypothesis
+.coverage

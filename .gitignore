@@ -13,3 +13,4 @@ lab/ssh_key*
 інструкція.md
 .coverage
 htmlcov/
+*.sqlite

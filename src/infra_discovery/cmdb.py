@@ -66,6 +66,13 @@ class Change:
         }
 
 
+def _actor() -> str:
+    try:
+        return getpass.getuser()
+    except (KeyError, OSError):  # e.g. a container running under an arbitrary uid
+        return "unknown"
+
+
 def _load(text: str | None) -> dict[str, str] | None:
     return json.loads(text) if text is not None else None
 
@@ -85,7 +92,7 @@ class CMDB:
         with self.db:
             cur = self.db.execute(
                 "INSERT INTO scans (ts, actor, targets) VALUES (?, ?, ?)",
-                (datetime.now(UTC).isoformat(timespec="seconds"), getpass.getuser(), ",".join(targets)),
+                (datetime.now(UTC).isoformat(timespec="seconds"), _actor(), ",".join(targets)),
             )
             scan_id = int(cur.lastrowid or 0)
             changes = self._reconcile_nodes(scan_id, graph.nodes, hosts) + self._reconcile_edges(
