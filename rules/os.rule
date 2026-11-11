@@ -1,0 +1,30 @@
+# Host / operating system identification
+rule linux_host {
+    kind host
+    when uname matches /^Linux /
+    set os_family = "Linux"
+    extract os_name from os_release regex /^NAME="?([^"\n]+)/
+    extract os_version from os_release regex /^VERSION_ID="?([^"\n]+)/
+    extract os_id from os_release regex /^ID="?([^"\n]+)/
+    extract kernel from uname regex /^Linux \S+ (\S+)/
+    extract arch from uname regex /\b(x86_64|aarch64|armv7l)\b/
+}
+
+# Package manager, inferred from what the package listing looks like
+rule pkg_dpkg {
+    kind host
+    when os_release matches /^ID_LIKE=.*debian|^ID=debian/
+    set package_manager = "dpkg"
+}
+
+rule pkg_rpm {
+    kind host
+    when os_release matches /^ID_LIKE=.*(rhel|fedora)|^ID="?(rhel|fedora|rocky|centos)/
+    set package_manager = "rpm"
+}
+
+rule pkg_apk {
+    kind host
+    when os_release matches /^ID=alpine/
+    set package_manager = "apk"
+}

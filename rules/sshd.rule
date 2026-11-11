@@ -1,0 +1,11 @@
+rule sshd {
+    kind software
+    when ps matches /sshd\b.*-D/
+    set name = "openssh-server"
+    set process = "sshd"
+    set ports = "22"
+    set category = "remote access"
+    extract version from packages regex /^openssh-server (?:\d+:)?([^-\s]+)/       # dpkg / rpm
+    extract version from packages regex /^openssh-server-(\d[^-\s]*)-r\d+$/        # apk
+    extract version from packages regex /^openssh-(\d[^-\s]*)-r\d+$/
+}

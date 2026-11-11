@@ -1,0 +1,23 @@
+rule postgresql {
+    kind software
+    when ps matches /postgres: checkpointer/
+    set name = "postgresql"
+    set process = "postgres"
+    set ports = "5432"
+    set category = "database"
+    extract version from packages regex /^postgresql\d*-server (\S+)/              # rpm
+    extract version from packages regex /^postgresql-\d+ (?:\d+:)?([^-\s+]+)/      # dpkg
+    extract version from packages regex /^postgresql\d+-(\d[^-\s]*)-r\d+$/        # apk
+    extract data_dir from ps regex /postgres\s+-D\s+(\S+)/
+}
+
+rule psql_client {
+    kind software
+    when ps matches /\bpsql\b/
+    set name = "psql"
+    set process = "psql"
+    set category = "database client"
+    extract version from packages regex /^postgresql\d+-client-(\d[^-\s]*)-r\d+$/  # apk
+    extract version from packages regex /^postgresql-client-\d+ (?:\d+:)?([^-\s+]+)/  # dpkg
+    extract version from packages regex /^postgresql (\S+)/                        # rpm
+}

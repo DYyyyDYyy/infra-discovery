@@ -1,0 +1,21 @@
+rule redis {
+    kind software
+    when ps matches /redis-server /
+    set name = "redis"
+    set process = "redis-server"
+    set ports = "6379"
+    set category = "key-value store"
+    extract version from packages regex /^redis-(\d[^-\s]*)-r\d+$/                 # apk
+    extract version from packages regex /^redis-server (?:\d+:)?([^-\s+]+)/        # dpkg
+    extract version from packages regex /^redis (\S+)/                             # rpm
+}
+
+rule redis_cli {
+    kind software
+    when ps matches /\bredis-cli\b/
+    set name = "redis-cli"
+    set process = "redis-cli"
+    set category = "key-value client"
+    extract version from packages regex /^redis-(\d[^-\s]*)-r\d+$/
+    extract version from packages regex /^redis-tools (?:\d+:)?([^-\s+]+)/
+}

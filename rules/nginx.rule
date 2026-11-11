@@ -1,0 +1,10 @@
+rule nginx {
+    kind software
+    when ps matches /nginx: master process/
+    set name = "nginx"
+    set process = "nginx"
+    set ports = "80,443"
+    set category = "web server"
+    extract version from packages regex /^nginx (?:\d+:)?([^-\s]+)/      # dpkg / rpm
+    extract version from packages regex /^nginx-(\d[^-\s]*)-r\d+$/        # apk
+}
