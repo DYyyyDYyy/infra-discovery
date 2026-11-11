@@ -1,0 +1,45 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.5.9"
+      - run: uv sync --frozen
+      - run: make lint
+      - run: make test
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t infra-discovery .
+      - run: docker run --rm infra-discovery --help
+
+  lab:
+    # real scan of the docker lab: 4 hosts, then a second scan must produce an empty diff
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.5.9"
+      - run: uv sync --frozen
+      - run: make lab
+      - run: make scan
+      - run: make scan-check
+      - run: uv run discover graph
+      - if: always()
+        run: make lab-down
